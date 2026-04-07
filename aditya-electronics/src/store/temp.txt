@@ -1,0 +1,4 @@
+import { create } from 'zustand';
+
+// Simple store for zustand if not installed, but I'll install it
+// Wait, I didn't install zustand. Let me add it.
