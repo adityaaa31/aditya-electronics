@@ -3,7 +3,7 @@ services:
     name: aditya-electronics
     env: node
     buildCommand: npm install && npm run build
-    startCommand: npx serve -s dist
+    startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
