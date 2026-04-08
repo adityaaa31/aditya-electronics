@@ -203,7 +203,7 @@ async function startServer() {
       await run("INSERT INTO otps (identifier, otp, expires_at) VALUES (?, ?, ?)", [identifier, otp, expiresAt]);
 
       if (identifier.includes("@")) {
-        // Send Email
+        // Send Email OTP
         try {
           await transporter.sendMail({
             from: `"Aditya Electronics" <${process.env.EMAIL_USER || 'storeadityaelectronics@gmail.com'}>`,
@@ -228,8 +228,7 @@ async function startServer() {
           throw new Error("Failed to send OTP email. Please check the server configuration or try again later.");
         }
       } else {
-        // Send SMS (Mock)
-        console.log(`Sending OTP ${otp} to phone ${identifier}`);
+        return res.status(400).json({ error: "OTP is only supported for email addresses." });
       }
 
       res.json({ success: true, message: "OTP sent successfully", otp: process.env.NODE_ENV === 'production' ? undefined : otp });
@@ -245,18 +244,20 @@ async function startServer() {
 
     if (!identifier) return res.status(400).json({ error: "Email or Phone is required" });
 
-    // Verify OTP
-    const otpRecord: any = await getOne("SELECT * FROM otps WHERE identifier = ? AND otp = ?", [identifier, otp]);
-    if (!otpRecord || new Date(otpRecord.expires_at) < new Date()) {
-      return res.status(400).json({ error: "Invalid or expired OTP" });
+    // OTP verification only for email registrations
+    if (email) {
+      const otpRecord: any = await getOne("SELECT * FROM otps WHERE identifier = ? AND otp = ?", [identifier, otp]);
+      if (!otpRecord || new Date(otpRecord.expires_at) < new Date()) {
+        return res.status(400).json({ error: "Invalid or expired OTP" });
+      }
     }
 
     try {
       const hashedPassword = bcrypt.hashSync(password, 10);
       const result = await run("INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)", [name, email || null, phone || null, hashedPassword]);
-      
-      // Cleanup OTP
-      await run("DELETE FROM otps WHERE identifier = ?", [identifier]);
+
+      // Cleanup OTP if email registration
+      if (email) await run("DELETE FROM otps WHERE identifier = ?", [identifier]);
 
       const token = jwt.sign({ id: result.lastInsertRowid, role: "customer" }, JWT_SECRET, { expiresIn: "7d" });
       res.json({ token, user: { id: result.lastInsertRowid, name, email, phone, role: "customer" } });
