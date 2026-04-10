@@ -21,10 +21,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (path === '/setup') {
       if (req.query.secret !== process.env.SETUP_SECRET) return res.status(403).json({ error: 'Forbidden' });
       await initDB();
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@storeadityaelectronics@gmail.com';
       const existing = await getOne('SELECT id FROM users WHERE email = ?', [adminEmail]);
       if (!existing) {
-        const hashed = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'admin@2026', 10);
+        const hashed = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'Satish@3122', 10);
         await run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', ['Admin', adminEmail, hashed, 'admin']);
       } else {
         await run('UPDATE users SET role = ? WHERE email = ?', ['admin', adminEmail]);
