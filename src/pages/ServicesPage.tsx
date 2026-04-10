@@ -40,7 +40,8 @@ const ServicesPage = () => {
         details: ''
       }));
     } catch (e: any) {
-      toast.error(e.response?.data?.error || 'Failed to book service');
+      const msg = e.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Failed to book service');
     }
   };
 
