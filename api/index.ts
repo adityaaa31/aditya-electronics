@@ -555,6 +555,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
+    // Admin change password
+    if (path === '/admin/change-password' && method === 'PATCH') {
+      const user = getUser(req);
+      if (!user || user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+      const { newPassword } = req.body;
+      if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      const hashed = bcrypt.hashSync(newPassword, 10);
+      await run('UPDATE users SET password = ? WHERE id = ?', [hashed, user.id]);
+      return res.json({ success: true });
+    }
+
     // Admin DB info
     if (path === '/admin/db-info') {
       const user = getUser(req);
