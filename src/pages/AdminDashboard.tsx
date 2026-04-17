@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   Settings,
-  Home
+  Home,
+  X
 } from 'lucide-react';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
@@ -544,6 +545,7 @@ const ManageProducts = () => {
 
 const ManageBookings = () => {
   const [bookings, setBookings] = React.useState([]);
+  const [selectedBooking, setSelectedBooking] = React.useState<any>(null);
 
   const fetchBookings = () => api.get('/admin/bookings').then(res => setBookings(Array.isArray(res.data) ? res.data : []));
   React.useEffect(() => { fetchBookings(); }, []);
@@ -553,6 +555,7 @@ const ManageBookings = () => {
       await api.patch(`/admin/bookings/${id}`, { status });
       toast.success('Status updated');
       fetchBookings();
+      if (selectedBooking?.id === id) setSelectedBooking((prev: any) => ({ ...prev, status }));
     } catch (e) { toast.error('Update failed'); }
   };
 
@@ -561,6 +564,7 @@ const ManageBookings = () => {
     try {
       await api.delete(`/admin/bookings/${id}`);
       toast.success('Booking deleted');
+      if (selectedBooking?.id === id) setSelectedBooking(null);
       fetchBookings();
     } catch (e) { toast.error('Delete failed'); }
   };
@@ -568,41 +572,91 @@ const ManageBookings = () => {
   return (
     <div>
       <h2 className="text-2xl sm:text-3xl font-bold mb-8 dark:text-white">Service Bookings</h2>
-      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-x-auto">
-        <table className="w-full text-left min-w-[700px]">
-          <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-            <tr>
-              <th className="p-6 font-bold text-gray-600 dark:text-gray-400">Customer</th>
-              <th className="p-6 font-bold text-gray-600 dark:text-gray-400">Service</th>
-              <th className="p-6 font-bold text-gray-600 dark:text-gray-400">Status</th>
-              <th className="p-6 font-bold text-gray-600 dark:text-gray-400">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((b: any) => (
-              <tr key={b.id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td className="p-6">
-                  <p className="font-bold dark:text-white">{b.full_name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{b.phone_number}</p>
-                </td>
-                <td className="p-6 dark:text-gray-300">{b.service_name}</td>
-                <td className="p-6">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    b.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 
-                    b.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                  }`}>
-                    {b.status.toUpperCase()}
-                  </span>
-                </td>
-                <td className="p-6 flex gap-3">
-                  <button onClick={() => updateStatus(b.id, 'completed')} className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg"><CheckCircle size={20} /></button>
-                  <button onClick={() => updateStatus(b.id, 'rejected')} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><XCircle size={20} /></button>
-                  <button onClick={() => handleDelete(b.id)} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><Trash2 size={20} /></button>
-                </td>
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Bookings Table */}
+        <div className="flex-grow bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
+            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+              <tr>
+                <th className="p-4 font-bold text-gray-600 dark:text-gray-400">Customer</th>
+                <th className="p-4 font-bold text-gray-600 dark:text-gray-400">Service</th>
+                <th className="p-4 font-bold text-gray-600 dark:text-gray-400">Status</th>
+                <th className="p-4 font-bold text-gray-600 dark:text-gray-400">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bookings.map((b: any) => (
+                <tr
+                  key={b.id}
+                  onClick={() => setSelectedBooking(b)}
+                  className={`border-b border-gray-50 dark:border-gray-800 cursor-pointer transition-colors ${selectedBooking?.id === b.id ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'}`}
+                >
+                  <td className="p-4">
+                    <p className="font-bold dark:text-white">{b.full_name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{b.phone_number}</p>
+                  </td>
+                  <td className="p-4 dark:text-gray-300 text-sm">{b.service_name || '—'}</td>
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                      b.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      b.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                    }`}>
+                      {b.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => updateStatus(b.id, 'completed')} className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg"><CheckCircle size={18} /></button>
+                      <button onClick={() => updateStatus(b.id, 'rejected')} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><XCircle size={18} /></button>
+                      <button onClick={() => handleDelete(b.id)} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><Trash2 size={18} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Detail Panel */}
+        {selectedBooking && (
+          <div className="lg:w-80 bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 h-fit">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold dark:text-white">Booking Details</h3>
+              <button onClick={() => setSelectedBooking(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><X size={20} /></button>
+            </div>
+            <div className="space-y-4 text-sm">
+              {[
+                { label: 'Name', value: selectedBooking.full_name },
+                { label: 'Phone', value: selectedBooking.phone_number },
+                { label: 'Email', value: selectedBooking.email || '—' },
+                { label: 'Service', value: selectedBooking.service_name || '—' },
+                { label: 'Address', value: selectedBooking.address || '—' },
+                { label: 'Locality', value: selectedBooking.locality || '—' },
+                { label: 'Booked On', value: new Date(selectedBooking.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">{label}</p>
+                  <p className="dark:text-white mt-0.5">{value}</p>
+                </div>
+              ))}
+              {selectedBooking.details && (
+                <div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">Problem Description</p>
+                  <p className="dark:text-white mt-0.5 leading-relaxed">{selectedBooking.details}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">Status</p>
+                <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold ${
+                  selectedBooking.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                  selectedBooking.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                }`}>
+                  {selectedBooking.status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
