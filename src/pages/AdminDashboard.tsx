@@ -556,6 +556,15 @@ const ManageBookings = () => {
     } catch (e) { toast.error('Update failed'); }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    try {
+      await api.delete(`/admin/bookings/${id}`);
+      toast.success('Booking deleted');
+      fetchBookings();
+    } catch (e) { toast.error('Delete failed'); }
+  };
+
   return (
     <div>
       <h2 className="text-2xl sm:text-3xl font-bold mb-8 dark:text-white">Service Bookings</h2>
@@ -588,6 +597,8 @@ const ManageBookings = () => {
                 <td className="p-6 flex gap-3">
                   <button onClick={() => updateStatus(b.id, 'completed')} className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg"><CheckCircle size={20} /></button>
                   <button onClick={() => updateStatus(b.id, 'rejected')} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><XCircle size={20} /></button>
+                  <button onClick={() => handleDelete(b.id)} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><Trash2 size={20} /></button>
+                </td>
                 </td>
               </tr>
             ))}

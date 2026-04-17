@@ -274,12 +274,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const bookingMatch = path.match(/^\/(?:admin\/)?bookings\/(\d+)$/);
     if (bookingMatch) {
-      if (method !== 'PATCH') return res.status(405).end();
       const user = getUser(req);
       if (!user || user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
-      const { status } = req.body;
-      await run('UPDATE bookings SET status = ? WHERE id = ?', [status, bookingMatch[1]]);
-      return res.json({ success: true });
+      if (method === 'PATCH') {
+        const { status } = req.body;
+        await run('UPDATE bookings SET status = ? WHERE id = ?', [status, bookingMatch[1]]);
+        return res.json({ success: true });
+      }
+      if (method === 'DELETE') {
+        await run('DELETE FROM bookings WHERE id = ?', [bookingMatch[1]]);
+        return res.json({ success: true });
+      }
+      return res.status(405).end();
     }
 
     // Chats
