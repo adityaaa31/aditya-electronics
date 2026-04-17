@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Tv, Wrench, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, Wrench, ShieldCheck, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 
@@ -58,24 +58,6 @@ const HomePage = () => {
           </motion.div>
         </div>
 
-        {/* Animated Floating Remote */}
-        <div className="absolute right-[5%] top-1/2 -translate-y-1/2 hidden lg:block w-1/4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotate: -15 }}
-            animate={{ opacity: 1, scale: 1, rotate: -5 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="relative"
-          >
-            <motion.div
-              animate={{ y: [0, -20, 0], rotate: [-5, 0, -5] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="rounded-3xl shadow-2xl border border-white/10 backdrop-blur-sm bg-white/10 p-8 flex items-center justify-center"
-            >
-              <Tv size={120} className="text-white/60" />
-            </motion.div>
-            <div className="absolute -inset-4 bg-red-600/20 blur-3xl -z-10 rounded-full" />
-          </motion.div>
-        </div>
       </section>
 
       {/* Features Section */}
