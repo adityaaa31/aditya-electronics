@@ -262,6 +262,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (method === 'POST') {
         const { user_id, service_id, details, full_name, phone_number, email, address, locality } = req.body;
         const result = await run('INSERT INTO bookings (user_id,service_id,details,full_name,phone_number,email,address,locality) VALUES (?,?,?,?,?,?,?,?)', [user_id || null, service_id || null, details, full_name, phone_number, email, address, locality]);
+
+        // Send notification email to admin
+        try {
+          const service: any = service_id ? await getOne('SELECT name FROM services WHERE id = ?', [service_id]) : null;
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user: process.env.EMAIL_USER || '', pass: (process.env.EMAIL_PASS || '').replace(/\s/g, '') }
+          });
+          await transporter.sendMail({
+            from: `"Aditya Electronics Website" <${process.env.EMAIL_USER}>`,
+            to: 'storeadityaelectronics@gmail.com',
+            subject: `New Service Booking from ${full_name}`,
+            html: `
+              <div style="font-family:sans-serif;padding:24px;border:1px solid #eee;border-radius:10px;max-width:500px;">
+                <h2 style="color:#dc2626;margin-bottom:4px;">New Booking Received</h2>
+                <p style="color:#666;margin-top:0;">via Aditya Electronics Website</p>
+                <hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />
+                <table style="width:100%;border-collapse:collapse;">
+                  <tr><td style="padding:8px 0;color:#888;width:140px;">Name</td><td style="padding:8px 0;font-weight:bold;">${full_name}</td></tr>
+                  <tr><td style="padding:8px 0;color:#888;">Phone</td><td style="padding:8px 0;font-weight:bold;">${phone_number}</td></tr>
+                  <tr><td style="padding:8px 0;color:#888;">Email</td><td style="padding:8px 0;">${email || '—'}</td></tr>
+                  <tr><td style="padding:8px 0;color:#888;">Service</td><td style="padding:8px 0;">${service ? service.name : '—'}</td></tr>
+                  <tr><td style="padding:8px 0;color:#888;">Address</td><td style="padding:8px 0;">${address || '—'}</td></tr>
+                  <tr><td style="padding:8px 0;color:#888;">Locality</td><td style="padding:8px 0;">${locality || '—'}</td></tr>
+                  <tr><td style="padding:8px 0;color:#888;vertical-align:top;">Problem</td><td style="padding:8px 0;">${details || '—'}</td></tr>
+                </table>
+                <hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />
+                <p style="font-size:12px;color:#999;">Login to admin dashboard to manage this booking.</p>
+              </div>
+            `
+          });
+        } catch (mailErr) {
+          console.error('Booking notification email failed:', mailErr);
+          // Don't fail the booking if email fails
+        }
+
         return res.json({ id: result.id });
       }
       if (method === 'GET') {
