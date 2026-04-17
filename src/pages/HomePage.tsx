@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Wrench, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, Monitor, Wrench, ShieldCheck, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 
@@ -65,7 +65,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { icon: Tv, title: "Genuine Parts", desc: "Original motherboards & backlights", },
+              { icon: Monitor, title: "Genuine Parts", desc: "Original motherboards & backlights", },
               { icon: Wrench, title: "Expert Repair", desc: "Certified technician for all brands" },
               { icon: ShieldCheck, title: "Warranty", desc: "Guaranteed service satisfaction" },
               { icon: Zap, title: "Fast Service", desc: "Quick turnaround for all repairs" },
